@@ -1,0 +1,12 @@
+name=Attack Vectorx
+author=CoronaVitae
+description=An addictive crank-oriented geometric shooter.
+bundleID=com.coronavitae
+version=0.02
+buildNumber=103
+imagePath=bundle_assets/
+launchSoundPath=path/to/launch/sound/file
+contentWarning=
+contentWarning2=
+pdxversion=20601
+buildtime=793534362
