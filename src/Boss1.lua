@@ -102,12 +102,12 @@ function BossOne:init()
 	self.lasershimmer = {}
 	
 	for i=1, 5 do
-		self.lasershimmer[i] = gfx.image.new(400, 200)
+		self.lasershimmer[i] = gfx.image.new(400, 200)--TO_FIX: use masking to make this less processor-intensive
 	end
 	
 	BossOne.super.init(self)
 	
-	self:setZIndex(5)
+	self:setZIndex(5)--TO_FIX: probably unnecessarily high; consider revising.
 	
 	function self:update()
 		--print("Boss health = "..self.health)
@@ -383,6 +383,7 @@ function BossOne:cohort()
 		x = Enemy()
 		x:moveTo(-13, enemyverts[i])
 		x.speed = 2
+		x.is_mortal = true
 	end
 
 end

@@ -22,6 +22,9 @@ local gameover_font = gfx.font.new("fonts/Roobert-24-Medium")
 local gameover_font_small = gfx.font.new("fonts/Roobert-20-Medium")
 local font_small = gfx.font.new("fonts/Roobert-11-Medium")
 --local gameover_text = "Game Over\nScore: "
+local multihost = false --this is for multiplayer testing, remove print
+local instructions = gfx.image.new("images/instructions")
+playdate.setMenuImage(instructions)--TO_ADD: multiple pause images based on context
 
 
 local snd = playdate.sound
@@ -70,7 +73,7 @@ for i=9, 14 do
 end
 
 function NewGame()
-	print("newgame")
+	--print("newgame")
 	player_alive = true
 	totalenemycount = 0
 	boss_alive = false
@@ -85,7 +88,7 @@ function NewGame()
 	new_high_score = 0
 	
 	if debug == 1 then
-		test = Powerup(200, 120)
+		--test = Powerup(200, 120)
 	end
 end
 
@@ -96,7 +99,7 @@ end
 
 
 function playdate.update()
-	print("updating, needtoundock =", needtoundock)
+	
 	if needtoundock == true then
 		gfx.clear()
 		playdate.display.setScale(8)
@@ -309,12 +312,15 @@ function playdate.AButtonDown()
 		
 		if playdate.buttonIsPressed("b") then
 			if playdate.buttonIsPressed("down") then
-				debug = 1
-				local menuitem2, menuerror2 = mainmenu:addMenuItem("Clear Save", clearSave)
+				toggleDebug()
 			end
 		end
 	end
-	
+	if multihost then
+		print("msg Host says AButton")
+	else
+		print("msg Client says AButton")
+	end
 	credits = false
 end
 
@@ -327,6 +333,8 @@ function playdate.BButtonDown()
 		
 		delete = Powerup(200, 120)
 	end
+	
+	print("msg BButton")
 end
 
 function playdate.leftButtonDown()
@@ -335,16 +343,18 @@ function playdate.leftButtonDown()
 	end
 end
 
-function toggleDebug(value)--this was used for a menu item, now defunct
-	if value == true then
+function toggleDebug() --TO_FIX: toggleDebug should also add the original menu items back
+	if debug == 0 then
 		debug = 1
 		soundtrack:stop()
+		mainmenu:removeAllMenuItems()
+		local menuitem2, menuerror2 = mainmenu:addMenuItem("Clear Save", clearSave)
+		local menuitem3, menuerror3 = mainmenu:addOptionsMenuItem("Framerate: ", {"0", "30", "50"}, setFramerate)
 	else
 		debug = 0
 		soundtrack:play()
 	end
 end
---local menuitem, menuerror = mainmenu:addCheckmarkMenuItem("Debug", toggleDebug)
 
 local function setDifficulty(menu_argument)
 	if menu_argument == "Normal" then
@@ -366,11 +376,14 @@ end
 function playdate.keyPressed(key)
 	
 	if key == "d" then
-		debug = 1
-		local menuitem2, menuerror2 = mainmenu:addMenuItem("Clear Save", clearSave)
-		print("!msg test")
+		toggleDebug()
 	end
 	
+	if key == "o" then --as in "oh shit"
+		phase = 3
+		boss_alive = false
+		score = 9000
+	end
 end
 
 function clearSave()
@@ -392,9 +405,20 @@ function roll_credits()
 	gfx.sprite.removeAll()
 end
 
+function setFramerate(rate) --debug function
+	playdate.display.setRefreshRate(tonumber(rate))
+end
+
 local menuitem3, menuerror3 = mainmenu:addOptionsMenuItem("Mode:", {"Hard", "Normal"}, setDifficulty)
 local menuitem4, menuerror4 = mainmenu:addMenuItem("Credits", roll_credits)
 
 function playdate.serialMessageReceived(message)
+	if message == "host" then
+		multihost = true
+	elseif message == "client" then
+		multihost = false
+	end
+	
 	scoretext = message.." "
+	
 end

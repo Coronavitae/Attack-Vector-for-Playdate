@@ -112,7 +112,11 @@ function Enemy:death()
 	deathsound:play()
 	score += self.killscore
 	self.health = self.basehealth
-	self:placement()
+	if self.is_mortal == true then
+		self:remove()
+	else
+		self:placement()
+	end
 	
 end
 
