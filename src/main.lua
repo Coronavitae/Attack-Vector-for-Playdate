@@ -14,7 +14,7 @@ import 'melody1.wav'
 import 'notopensource.wav'
 import 'Boss1'
 
-
+playdate.display.setRefreshRate(50)--just for intro animations
 local mainmenu = playdate.getSystemMenu()
 
 local text_overlay = gfx.image.new(400,240)
@@ -25,12 +25,15 @@ local font_small = gfx.font.new("fonts/Roobert-11-Medium")
 local multihost = false --this is for multiplayer testing, remove print
 local instructions = gfx.image.new("images/instructions")
 playdate.setMenuImage(instructions)--TO_ADD: multiple pause images based on context
+local splash_screen_1 = gfx.image.new("splash_screen_1")
+local splash_screen_2 = gfx.image.new("splash_screen_2")
 
 
 local snd = playdate.sound
 local geo = playdate.geometry
 
-local blink_timer = 0
+local blink_timer = 60
+--local intro_timer = 50
 
 local melody =  playdate.sound.sampleplayer.new("melody1")
 melody:setVolume(.2)
@@ -46,7 +49,16 @@ score = 0
 player_alive = false
 dev_mode = 0
 local difficulty = 0
-local credits = false
+local stage = 0
+local intro_timer = 40
+
+--[[
+Dev Reference for Stages:
+0 = splash screen intro
+1 = splash screen
+2 = gameplay
+3 = credits
+]]
 
 high_score_table = playdate.datastore.read()
 high_score_table = high_score_table or {0}
@@ -58,7 +70,6 @@ local crankframe = -18
 function playdate.crankUndocked()
 	if needtoundock == true then
 		needtoundock = false
-		NewGame()
 	end
 end
 
@@ -92,32 +103,43 @@ function NewGame()
 	end
 end
 
-if not needtoundock then
-	NewGame()
-end
-
-
 
 function playdate.update()
-	
+	gfx.clear()
+	if stage == 0 then
+		splashScreenIntro()
+	elseif stage ==1 then
+		splashScreen()
+	elseif stage == 2 then
+		
+		gameUpdate()
+	elseif stage == 3 then
+		showCredits()
+	end
+end
+
+function splashScreenIntro()
+	if intro_timer > 25 then
+		splash_screen_1:draw(25,43+(197*(intro_timer-25)/15))
+	elseif intro_timer > 15 then
+		splash_screen_1:draw(25,43)
+		
+	elseif intro_timer >= 0 then
+		splash_screen_1:draw(25,43)
+		splash_screen_2:draw(25,43-(197*(intro_timer)/15))
+	end
+	intro_timer -=1
+	if intro_timer < 0 then
+		playdate.display.setRefreshRate(30)--returning to normal after intro animation
+		stage = 1
+	end
+end
+
+function splashScreen()
+	splash_screen_1:draw(25,43)
+	splash_screen_2:draw(25,43)
 	if needtoundock == true then
-		gfx.clear()
-		playdate.display.setScale(8)
-		
-		local frame = nil
-		if crankframe < 1 then
-			frame = crank_animation[1]--:draw(15,8)
-		elseif crankframe <=6 then
-			frame = crank_animation[crankframe]--:draw(15,8)
-		else
-			frame = crank_animation[6]--:draw(15,8)
-		end
-		
-		local screenWidth, screenHeight = playdate.display.getSize()
-		frame:drawAnchored(screenWidth/2+2, screenHeight/2, 0.5, 0.5)
-		
-		crankframe += 1
-		if crankframe>26 then crankframe =-18 end
+		playdate.ui.crankIndicator:draw() 
 		
 		-- for screenshotting, remove in release:
 		
@@ -135,13 +157,43 @@ function playdate.update()
 		--imagecount += 1-- for screenshotting, remove in release
 		--gfx.clear()
 		--playdate.display.setScale(1)
-		
 	else
-		playdate.display.setScale(1)
-		gameUpdate()
+		if blink_timer >40 then
+			blink_timer -= 1
+		elseif blink_timer > 20 then
+		--gfx.setColor(gfx.kColorWhite)
+		--gfx.fillRect(97, 200, 100, 20)
+		
+		gameover_font_small:drawTextAligned("Press A", 200, 200, kTextAlignment.center)
+		
+		blink_timer -= 1
+		elseif blink_timer > 0 then
+			blink_timer -= 1
+		else
+			blink_timer = 40
+		end
 	end
 end
+
+function showCredits()
+		
+	gfx.clear()
+	--gameover_font:drawTextAligned("Credits", 200, 0, kTextAlignment.center)
+	creditstext = [[
+Game By CoronaVitae
+
+Main Theme
+'Videogame Theme'
+by The J. Arthur Keenes Band
+Thank you to Dan McLay
+
+Special Thanks to SeaofGlitter
+]]
+	font_small:drawTextAligned(creditstext, 200, 30, kTextAlignment.center)		
+		
 	
+end
+
 function gameUpdate()
 	playdate.timer.updateTimers()
 	gfx.clear()
@@ -267,22 +319,6 @@ function gameUpdate()
 	text_overlay:draw(0,0)
 	gfx.setImageDrawMode(gfx.kDrawModeCopy)
 	
-	if credits then
-		gfx.clear()
-		--gameover_font:drawTextAligned("Credits", 200, 0, kTextAlignment.center)
-		creditstext = [[
-Game By CoronaVitae
-
-Main Theme
-'Videogame Theme'
-by The J. Arthur Keenes Band
-Thank you to Dan McLay
-
-Special Thanks to SeaofGlitter
-]]
-		font_small:drawTextAligned(creditstext, 200, 30, kTextAlignment.center)
-		
-	end
 end
 
 function playdate.downButtonDown()
@@ -306,7 +342,8 @@ function playdate.AButtonDown()
 		if dev_mode == 1 then
 			print("buttonA")
 			NewGame()
-		elseif player_alive == false then
+		elseif player_alive == false or stage ~= 2 then --TO_FIX: dying should be its own stage, not just player_alive==false
+			stage = 2
 			NewGame()
 		end--fix this, shouldn't be in update
 		
@@ -321,7 +358,7 @@ function playdate.AButtonDown()
 	else
 		print("msg Client says AButton")
 	end
-	credits = false
+	
 end
 
 function playdate.BButtonDown()
@@ -400,7 +437,7 @@ end
 
 
 function roll_credits()
-	credits = true
+	stage = 3
 	player_alive = false
 	gfx.sprite.removeAll()
 end
