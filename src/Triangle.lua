@@ -53,39 +53,23 @@ gfx.popContext()
 --	--gfx.fillPolygon(5, 10, 15, 30, 25, 10)
 --gfx.popContext()
 
-local triangle_boost_image = {}
+local triangle_boost_image_table = {}
 
-triangle_boost_image[12]=triangle_image	
-triangle_boost_image[1] = gfx.image.new(30, 45)
+triangle_boost_image_table[12]=triangle_image	--TO_FIX: The triangle sprite no longer really needs to change size.
+triangle_boost_image_table[1] = gfx.image.new(30, 45)
 
 temp_dither = 111
 temp_dither_depth = .8
-	
-gfx.pushContext(triangle_boost_image[1])
-	
-	--triangle_image:drawFaded(0, 5+10, temp_dither_depth, temp_dither)
-	--triangle_outline_white:draw(0,5)
-	triangle_image:drawFaded(0, 5, 1, temp_dither)--
-	triangle_outline_white:draw(0,5-10)
-	--triangle_white:draw(0,5-10)
-	triangle_image:drawFaded(0, 5-10, temp_dither_depth, temp_dither)
-	gfx.fillPolygon(10, 15, 15, 0, 20, 15)
-	--gfx.fillPolygon(5, 15, 15, 35, 25, 15)
 
-gfx.popContext()
-
-for i = 2, 11, 1 do
-	triangle_boost_image[i] = gfx.image.new(30, 45)
-	gfx.pushContext(triangle_boost_image[i])
-		
+for i = 1, 11, 1 do
+	triangle_boost_image_table[i] = gfx.image.new(30, 45)
+	gfx.pushContext(triangle_boost_image_table[i])
+		gfx.fillPolygon(5, 15, 15, 35, 25, 15, 20, 20-5*((i-1)/11), 15, 0+15*((i-1)/11), 10, 20-5*((i-1)/11), 5, 15)
 		--triangle_image:drawFaded(0, 5+12-i, temp_dither_depth, temp_dither)--
-		
-		triangle_image:drawFaded(0, 5, 1, temp_dither)--
-		triangle_outline_white:draw(0,5-9-i)
-		triangle_outline_white:draw(0,5-12+i)
-		--triangle_white:draw(0,5-12+i)
-		triangle_image:drawFaded(0, 5-12+i, temp_dither_depth, temp_dither)
-		
+		triangle_boost_image_table[i]:drawFaded(0, -7+7*(i-1)/11, .5, gfx.image.kDitherTypeBayer8x8)
+		gfx.setColor(gfx.kColorWhite)
+		gfx.drawLine(20, 20-5*((i-1)/11), 15, 0+15*((i-1)/11))
+		gfx.drawLine(15, 0+15*((i-1)/11), 10, 20-5*((i-1)/11))
 	gfx.popContext()
 	
 	if i == 12 then print("12 reached") end
@@ -124,22 +108,22 @@ function NewTriangle()
 		if is_boosting then --TO_FIX: this should be linked with the firing function somehow, so that we don't have two "if is_boosting"
 			
 			speed = 5
-			if debug == 1 then
+			if dev_mode == 1 then
 				speed = 14-self.boost_timer
 			end
 			
-			triangle:setImage(triangle_boost_image[self.boost_timer])--self.boost_timer])
+			triangle:setImage(triangle_boost_image_table[self.boost_timer])--self.boost_timer])
 			if self.boost_timer > 1 then
 				self.boost_timer -= 1
 			end
 		else
 			if self.boost_timer < 12 then
-				self.boost_timer += 3
+				self.boost_timer += 2
 				if self.boost_timer > 12 then
 					self.boost_timer = 12
 				end
 			end
-			triangle:setImage(triangle_boost_image[self.boost_timer])
+			triangle:setImage(triangle_boost_image_table[self.boost_timer])
 			speed = 2
 		end
 		

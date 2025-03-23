@@ -44,7 +44,7 @@ local geom = playdate.geometry
 local scoretext = "Score: "
 score = 0
 player_alive = false
-local debug = 0
+dev_mode = 0
 local difficulty = 0
 local credits = false
 
@@ -87,8 +87,8 @@ function NewGame()
 	blink_timer = 90
 	new_high_score = 0
 	
-	if debug == 1 then
-		--test = Powerup(200, 120)
+	if dev_mode == 1 then
+		test = Powerup(200, 120)
 	end
 end
 
@@ -147,7 +147,7 @@ function gameUpdate()
 	gfx.clear()
 	gfx.sprite.update()
 	
-	if debug == 1 and (playdate.buttonIsPressed( playdate.kButtonA )) then
+	if dev_mode == 1 and (playdate.buttonIsPressed( playdate.kButtonA )) then
 		print("buttonA")
 		NewGame()
 	end--fix this, shouldn't be in update
@@ -190,7 +190,7 @@ function gameUpdate()
 	
 	
 	
-	if debug ~= 0 then
+	if dev_mode ~= 0 then
 		local test = triangle:getCollideRect()
 		local boundsx, boundsy = triangle:getBounds()
 		--print("tribound at ".. boundsx..","..boundsy)
@@ -286,7 +286,7 @@ Special Thanks to SeaofGlitter
 end
 
 function playdate.downButtonDown()
-	if debug == 1 then
+	if dev_mode == 1 then
 		print("down")
 		soundtrack:stop()
 		
@@ -303,7 +303,7 @@ end
 
 function playdate.AButtonDown()
 	if not needtoundock then
-		if debug == 1 then
+		if dev_mode == 1 then
 			print("buttonA")
 			NewGame()
 		elseif player_alive == false then
@@ -312,7 +312,7 @@ function playdate.AButtonDown()
 		
 		if playdate.buttonIsPressed("b") then
 			if playdate.buttonIsPressed("down") then
-				toggleDebug()
+				toggleDevMode()
 			end
 		end
 	end
@@ -325,7 +325,7 @@ function playdate.AButtonDown()
 end
 
 function playdate.BButtonDown()
-	if debug == 1 then
+	if dev_mode == 1 then
 		testobject = BossOne()
 		current_boss = testobject
 		boss_alive = true
@@ -338,20 +338,20 @@ function playdate.BButtonDown()
 end
 
 function playdate.leftButtonDown()
-	if debug == 1 then
+	if dev_mode == 1 then
 		delete = Powerup(200, 120)
 	end
 end
 
-function toggleDebug() --TO_FIX: toggleDebug should also add the original menu items back
-	if debug == 0 then
-		debug = 1
+function toggleDevMode() --TO_FIX: toggleDevMode should also add the original menu items back
+	if dev_mode == 0 then
+		dev_mode = 1
 		soundtrack:stop()
 		mainmenu:removeAllMenuItems()
 		local menuitem2, menuerror2 = mainmenu:addMenuItem("Clear Save", clearSave)
 		local menuitem3, menuerror3 = mainmenu:addOptionsMenuItem("Framerate: ", {"0", "30", "50"}, setFramerate)
 	else
-		debug = 0
+		dev_mode = 0
 		soundtrack:play()
 	end
 end
@@ -376,7 +376,7 @@ end
 function playdate.keyPressed(key)
 	
 	if key == "d" then
-		toggleDebug()
+		toggleDevMode()
 	end
 	
 	if key == "o" then --as in "oh shit"
@@ -405,7 +405,7 @@ function roll_credits()
 	gfx.sprite.removeAll()
 end
 
-function setFramerate(rate) --debug function
+function setFramerate(rate) --dev_mode function
 	playdate.display.setRefreshRate(tonumber(rate))
 end
 

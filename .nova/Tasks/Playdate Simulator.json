@@ -5,7 +5,7 @@
   },
   "extensionTemplate" : "simulator",
   "extensionValues" : {
-    "playdate.debugRequest" : "launch",
+    "playdate.dev_modeRequest" : "launch",
     "playdate.main-path" : "src"
   }
 }

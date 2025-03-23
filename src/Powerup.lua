@@ -3,6 +3,7 @@ import "powerupsound.wav"
 local gfx = playdate.graphics
 
 local powerup_image = gfx.image.new(12,12)
+
 gfx.pushContext(powerup_image)
 	gfx.setColor(gfx.kColorBlack)
 	gfx.drawLine(0, 5, 12, 5)
@@ -11,6 +12,8 @@ gfx.pushContext(powerup_image)
 	gfx.drawLine(6, 0, 6, 12)
 	gfx.drawCircleAtPoint(6, 6, 6)
 gfx.popContext()
+
+local megaboost_image = gfx.image.new("megaboost3") --TO_ADD: for new powerup idea - boosting to destroy enemies
 
 local powerupsound =  playdate.sound.sampleplayer.new("powerupsound")
 powerupsound:setVolume(.3)
