@@ -23,28 +23,79 @@ gfx.pushContext(triangle_image)
 	gfx.fillPolygon(5, 10, 15, 30, 25, 10)
 gfx.popContext()
 
-local triangle_flare = gfx.image.new(30,30)
-gfx.pushContext(triangle_flare)
+local triangle_outline = gfx.image.new(30,30)
+gfx.pushContext(triangle_outline)
+	gfx.setLineWidth(1)
 	gfx.setColor(gfx.kColorBlack)
-	--gfx.fillPolygon(5, 10, 15, 30, 25, 10)
-	gfx.fillPolygon(9, 4, 15, 16, 21, 4)
-	
-	--gfx.setColor(gfx.kColorClear)
-	--gfx.fillPolygon(5, 10, 15, 30, 25, 10)
+	gfx.drawPolygon(5, 10, 15, 30, 25, 10)
 gfx.popContext()
 
-local triangle_boost_image = gfx.image.new(30,30)
-gfx.pushContext(triangle_boost_image)
-	triangle_flare:drawFaded(0,0,.5, playdate.graphics.image.kDitherTypeBayer8x8)
-	
-	gfx.fillPolygon(5, 10, 15, 30, 25, 10)
-	
+local triangle_outline_white = gfx.image.new(30,30)
+gfx.pushContext(triangle_outline_white)
+	gfx.setLineWidth(1)
+	gfx.setColor(gfx.kColorWhite)
+	gfx.drawPolygon(5, 10, 15, 30, 25, 10)
 gfx.popContext()
+
+local triangle_white = gfx.image.new(30,30)
+gfx.pushContext(triangle_white)
+	gfx.setColor(gfx.kColorWhite)
+	gfx.fillPolygon(5, 10, 15, 30, 25, 10)
+gfx.popContext()
+
+--local triangle_flare = gfx.image.new(30,30)
+--gfx.pushContext(triangle_flare)
+--	gfx.setColor(gfx.kColorBlack)
+--	--gfx.fillPolygon(5, 10, 15, 30, 25, 10)
+--	gfx.fillPolygon(9, 4, 15, 16, 21, 4)
+--	
+--	--gfx.setColor(gfx.kColorClear)
+--	--gfx.fillPolygon(5, 10, 15, 30, 25, 10)
+--gfx.popContext()
+
+local triangle_boost_image = {}
+
+triangle_boost_image[12]=triangle_image	
+triangle_boost_image[1] = gfx.image.new(30, 45)
+
+temp_dither = 111
+temp_dither_depth = .8
+	
+gfx.pushContext(triangle_boost_image[1])
+	
+	--triangle_image:drawFaded(0, 5+10, temp_dither_depth, temp_dither)
+	--triangle_outline_white:draw(0,5)
+	triangle_image:drawFaded(0, 5, 1, temp_dither)--
+	triangle_outline_white:draw(0,5-10)
+	--triangle_white:draw(0,5-10)
+	triangle_image:drawFaded(0, 5-10, temp_dither_depth, temp_dither)
+	gfx.fillPolygon(10, 15, 15, 0, 20, 15)
+	--gfx.fillPolygon(5, 15, 15, 35, 25, 15)
+
+gfx.popContext()
+
+for i = 2, 11, 1 do
+	triangle_boost_image[i] = gfx.image.new(30, 45)
+	gfx.pushContext(triangle_boost_image[i])
+		
+		--triangle_image:drawFaded(0, 5+12-i, temp_dither_depth, temp_dither)--
+		
+		triangle_image:drawFaded(0, 5, 1, temp_dither)--
+		triangle_outline_white:draw(0,5-9-i)
+		triangle_outline_white:draw(0,5-12+i)
+		--triangle_white:draw(0,5-12+i)
+		triangle_image:drawFaded(0, 5-12+i, temp_dither_depth, temp_dither)
+		
+	gfx.popContext()
+	
+	if i == 12 then print("12 reached") end
+end
 
 function NewTriangle()
 	local triangle = gfx.sprite.new(triangle_image)
 	triangle.fireSpeed = 5 --change to set the number of frames per shot fired, fix later to allow powerups
 	triangle.timer = 0
+	triangle.boost_timer = 12
 	triangle:moveTo(300,120)
 	triangle:add()
 	--ugh the bounds change as it rotates triangle:setCollideRect(10, 10, 10, 10) -- previously 0,0,20,20, this makes it easier
@@ -67,19 +118,35 @@ function NewTriangle()
 		local down = playdate.buttonIsPressed( playdate.kButtonDown )
 		local is_boosting = up or left or right or down 
 		
-		if is_boosting then
-			triangle:setImage(triangle_boost_image)
-			speed = 5
-		else
-			triangle:setImage(triangle_image)
-			speed = 2
+		local xDirection = -math.sin( math.rad(self.turns))
+		local yDirection = math.cos( math.rad(self.turns))
 		
+		if is_boosting then --TO_FIX: this should be linked with the firing function somehow, so that we don't have two "if is_boosting"
+			
+			speed = 5
+			if debug == 1 then
+				speed = 14-self.boost_timer
+			end
+			
+			triangle:setImage(triangle_boost_image[self.boost_timer])--self.boost_timer])
+			if self.boost_timer > 1 then
+				self.boost_timer -= 1
+			end
+		else
+			if self.boost_timer < 12 then
+				self.boost_timer += 3
+				if self.boost_timer > 12 then
+					self.boost_timer = 12
+				end
+			end
+			triangle:setImage(triangle_boost_image[self.boost_timer])
+			speed = 2
 		end
 		
 		self:setRotation(self.turns)
 		
-		self.x = self.x + speed*-math.sin( math.rad(self.turns))
-		self.y = self.y + speed*math.cos( math.rad(self.turns))
+		self.x = self.x + speed*xDirection
+		self.y = self.y + speed*yDirection
 		if self.x < 0 then 
 			self.x = 400
 		elseif self.x > 400 then
@@ -122,7 +189,7 @@ function NewTriangle()
 			self.timer = 0
 		end
 		
-		if not is_boosting then --alter this to reflect which buttons stop shooting
+		if not is_boosting then
 			
 			if self.timer == 0 then
 				self.timer +=1

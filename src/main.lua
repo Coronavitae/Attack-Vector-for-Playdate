@@ -191,19 +191,19 @@ function gameUpdate()
 	
 	
 	if debug ~= 0 then
-		--local test = triangle:getCollideRect()
-		--local boundsx, boundsy = triangle:getBounds()
-		----print("tribound at ".. boundsx..","..boundsy)
+		local test = triangle:getCollideRect()
+		local boundsx, boundsy = triangle:getBounds()
+		--print("tribound at ".. boundsx..","..boundsy)
 		--
 	--
-		--test.x = boundsx +test.x
-		--test.y = boundsy +test.y
+		test.x = boundsx +test.x
+		test.y = boundsy +test.y
 	--
-		--gfx.drawRect(test)
-		--gfx.drawRect(triangle:getBounds())
+		gfx.drawRect(test)
+		gfx.drawRect(triangle:getBounds())
 		
 		
-		local testobject = false --change this name to variable to show collision boundaries
+		local testobject = false --change this name to variable to show boundaries
 		
 		if testobject then
 			local aboundsx, aboundsy = testobject:getBounds()
