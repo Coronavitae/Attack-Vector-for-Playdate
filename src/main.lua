@@ -14,6 +14,8 @@ import 'melody1.wav'
 import 'notopensource.wav'
 import 'Boss1'
 
+
+
 playdate.display.setRefreshRate(50)--just for intro animations
 local mainmenu = playdate.getSystemMenu()
 
@@ -87,6 +89,7 @@ end
 
 function NewGame()
 	--print("newgame")
+	stop_sounds()
 	playdate.resetElapsedTime()
 	player_alive = true
 	totalenemycount = 0
@@ -426,6 +429,15 @@ function playdate.keyPressed(key)
 		boss_alive = false
 		score = 9000
 	end
+	
+	if key == "i" then
+		local soundTable = playdate.sound.playingSources()
+		for i=1, #soundTable do
+			if soundTable[i] ~= soundtrack then
+				soundTable[i]:stop()
+			end
+		end
+	end
 end
 
 function clearSave()
@@ -463,4 +475,13 @@ function playdate.serialMessageReceived(message)
 	
 	scoretext = message.." "
 	
+end
+
+function stop_sounds()
+	local soundTable = playdate.sound.playingSources()
+	for i=1, #soundTable do
+		if soundTable[i] ~= soundtrack then
+			soundTable[i]:stop()
+		end
+	end
 end
