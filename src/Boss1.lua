@@ -188,6 +188,7 @@ function BossOne:init()
 	function self:death()
 		BossOne.super.death(self)
 		boss_alive = false
+		playdate.resetElapsedTime()--TO_FIX: this should only happen when the boss stage is cleared, if there are multiple boss-enemies
 		self:remove()
 	end
 	

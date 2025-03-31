@@ -35,6 +35,8 @@ local geo = playdate.geometry
 local blink_timer = 60
 --local intro_timer = 50
 
+local boss_interlude_time = 30 --determines time before first boss and between bosses
+
 local melody =  playdate.sound.sampleplayer.new("melody1")
 melody:setVolume(.2)
 local melodyb =  playdate.sound.sampleplayer.new("notopensource")
@@ -85,6 +87,7 @@ end
 
 function NewGame()
 	--print("newgame")
+	playdate.resetElapsedTime()
 	player_alive = true
 	totalenemycount = 0
 	boss_alive = false
@@ -207,8 +210,10 @@ function gameUpdate()
 	local conda = player_alive == true--fix this with a real game tracker
 	local condb = boss_alive == false
 	local condc = score > (100 + 1500 * phase) --this should be 300, easier for reviewing
+	local condd = playdate.getElapsedTime() > boss_interlude_time
 	
-	if conda and condb and condc then
+
+	if conda and condb and condc and condd then
 		
 		current_boss = BossOne()
 		boss_alive = true
