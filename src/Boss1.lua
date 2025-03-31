@@ -8,7 +8,7 @@ import 'CoreLibs/timer'
 gfx = playdate.graphics
 local snd = playdate.sound
 local geo = playdate.geometry
-
+local laser_table = import 'Laser_Table'
 
 
 --testsound:playMIDINote("C4", .2)
@@ -99,11 +99,8 @@ function BossOne:init()
 	self.targety = 120
 	self.giftdir = 0
 	
-	self.lasershimmer = {}
+	self.laser_table = laser_table
 	
-	for i=1, 5 do
-		self.lasershimmer[i] = gfx.image.new(400, 200)--TO_FIX: use masking to make this less processor-intensive
-	end
 	
 	BossOne.super.init(self)
 	
@@ -187,6 +184,7 @@ function BossOne:init()
 	
 	function self:death()
 		BossOne.super.death(self)
+		self.lasersound:stop()
 		boss_alive = false
 		playdate.resetElapsedTime()--TO_FIX: this should only happen when the boss stage is cleared, if there are multiple boss-enemies
 		self:remove()
@@ -201,7 +199,7 @@ function BossOne:bossGraphics()
 		self.targety = triangle.y
 		self.lasersound:playMIDINote("C4", .2, 2.5)
 		self.lasersoundtimer = playdate.timer.new(1000, 0, 1, playdate.easingFunctions.inQuint)
-		self:laserShimmerSetup()
+		self.laserTimer = 1
 	elseif self.bosstimer <40 then
 		self:fireLaser()
 	elseif self.bosstimer <70 then
@@ -210,76 +208,31 @@ function BossOne:bossGraphics()
 	
 end
 
-function BossOne:laserShimmerSetup()
-	
-	for i=1, 5 do -- this initializes each of the 5 shimmer layers
-		self.laserShimmerTimer = -1 --should prevent displaying rogue beams
-		self:laserShimmerDisplay(i)
-		
-	end
-	
-	
-	self.laserShimmerTimer = 15
-end
 
 function BossOne:laserShimmerDisplay(lasernumber) --lasernumber represents 1 of 5 layers of shimmer that update independently
-	lasernumber = lasernumber or 0 -- 0 skips updating shimmer layer to create less flickery effect
-	if self.laserShimmerTimer == 15 then -- updates one layer each 3 frames
-		lasernumber = 5
-	elseif self.laserShimmerTimer == 12 then
-		lasernumber = 4
-	elseif self.laserShimmerTimer == 9 then
-		lasernumber = 3
-	elseif self.laserShimmerTimer == 6 then
-		lasernumber = 2
-	elseif self.laserShimmerTimer == 3 then
-		lasernumber = 1
-	end
-	
-	local laser = self:laserMath() -- pulls the coordinates of the laser's four corners
-	
-	--i.e.:
-	-- (x1,y1)----------------(x4,y4)
-	--    |                      |
-	-- (x2,y2)----------------(x3,y3)
+	local laser = self:laserMath()
+	local laser_polygon = geo.polygon.new(laser.x1,laser.y1,laser.x2, laser.y2, laser.x3, laser.y3, laser.x4, laser.y4)
+	laser_polygon:close() --TO_FIX: This entire part of the animation needs to be updated.
+	local pseudomask = gfx.image.new(400, 240, gfx.kColorBlack)
+	gfx.lockFocus(pseudomask)
+		gfx.setColor(gfx.kColorWhite)
+		gfx.fillPolygon(laser_polygon)
+	gfx.unlockFocus()
 	
 	
-	if lasernumber <=5 and lasernumber >=1 then
-		gfx.lockFocus(self.lasershimmer[lasernumber])
-			gfx.clear(gfx.kColorClear)
-			--this section would ideally change automatically if laserwidth is later updated, but it doesn't.
-			--manually update this if laserwidth changes
-			--current width of laser is 20, length is 400
-			for i=1, 80 do --change number to increase or decrease density of shimmer; may be cause of performance issues
-				local relative_height = math.random(1, 20) /20
-				local relative_width = math.random(1, 400) / 400
-				local height_change_x = (laser.x2 - laser.x1)
-				local height_change_y = (laser.y2 - laser.y1)
-				local width_change_x = (laser.x4 - laser.x1)
-				local width_change_y = (laser.y4 - laser.y1)
-				
-				local pixel_x = laser.x1 + height_change_x * relative_height
-				pixel_x += width_change_x * relative_width
-				local pixel_y = laser.y1 + height_change_y * relative_height
-				pixel_y += width_change_y * relative_width
-				gfx.drawPixel(pixel_x, pixel_y)
-				
-			end
-			print("lasernumber = "..lasernumber.."\nAt: "..laser.x4..","..laser.y4)
+	gfx.pushContext()
+		gfx.setImageDrawMode(gfx.kDrawModeWhiteTransparent)
+		local shimmer = self.laser_table[self.laserTimer]:copy()
+		laser_mask = gfx.image.new(400, 240, gfx.kColorWhite)
+		gfx.lockFocus(laser_mask)
+			
+			pseudomask:draw(0,0)
 		gfx.unlockFocus()
-	end
-	
-	
-	if self.laserShimmerTimer >= 0 then
-		for i=1, 5 do
-			self.lasershimmer[i]:draw(0,0)
-		end
-	end
-	
-	self.laserShimmerTimer -= 1
-	if self.laserShimmerTimer <= 0 then
-		self.laserShimmerTimer = 15
-	end
+		shimmer:setMaskImage(laser_mask)
+		shimmer:draw(0,0)
+	gfx.popContext()
+	self.laserTimer +=1 
+	if self.laserTimer > 30 then self.laserTimer = 1 end
 end
 
 
