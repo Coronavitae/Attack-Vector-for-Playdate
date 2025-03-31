@@ -14,8 +14,6 @@ import 'melody1.wav'
 import 'notopensource.wav'
 import 'Boss1'
 
-
-
 playdate.display.setRefreshRate(50)--just for intro animations
 local mainmenu = playdate.getSystemMenu()
 
@@ -31,8 +29,12 @@ local splash_screen_1 = gfx.image.new("splash_screen_1")
 local splash_screen_2 = gfx.image.new("splash_screen_2")
 
 
-local snd = playdate.sound
-local geo = playdate.geometry
+local snd <const> = playdate.sound
+local geo <const> = playdate.geometry
+local gfx <const> = playdate.graphics
+local geom <const> = playdate.geometry
+
+
 
 local blink_timer = 60
 --local intro_timer = 50
@@ -46,8 +48,8 @@ melodyb:setVolume(.4)
 
 local soundtrack = melodyb
 
-local gfx = playdate.graphics
-local geom = playdate.geometry
+
+
 local scoretext = "Score: "
 score = 0
 player_alive = false

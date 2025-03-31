@@ -90,6 +90,11 @@ function BossOne:init()
 	
 	
 	self.image = boss_one_image
+	self.backgroundImage = gfx.image.new(400,240)
+	self.background = gfx.sprite.new(backgroundImage)
+	self.background:moveTo(200,120)
+	self.background:add()
+	self.background:setZIndex(self:getZIndex()-1)
 	self.speed = 5
 	self.health = 100
 	self.killscore = 500
@@ -107,6 +112,7 @@ function BossOne:init()
 	self:setZIndex(5)--TO_FIX: probably unnecessarily high; consider revising.
 	
 	function self:update()
+		
 		--print("Boss health = "..self.health)
 		
 		self.lasersoundfilter:setCenter(self.lasersoundtimer.value)
@@ -116,6 +122,8 @@ function BossOne:init()
 		if self.bosstimer > 0 then
 			self.bosstimer -=1
 		else
+			self.backgroundImage:clear(gfx.kColorClear)
+			self.background:remove()
 			self.bosstimer = 200 -- abstract this
 		end
 		
@@ -200,6 +208,13 @@ function BossOne:bossGraphics()
 		self.lasersound:playMIDINote("C4", .2, 2.5)
 		self.lasersoundtimer = playdate.timer.new(1000, 0, 1, playdate.easingFunctions.inQuint)
 		self.laserTimer = 1
+		
+		local laser = self:laserMath()
+		
+		self.laserart = geo.polygon.new(laser.x1,laser.y1,laser.x2, laser.y2, laser.x3, laser.y3, laser.x4, laser.y4)
+		self.laserart:close()
+		self.background:add()
+		
 	elseif self.bosstimer <40 then
 		self:fireLaser()
 	elseif self.bosstimer <70 then
@@ -237,16 +252,13 @@ end
 
 
 function BossOne:fireLaser()	
-	local laser = self:laserMath()
+
+	gfx.lockFocus(self.backgroundImage)
+		gfx.fillPolygon(self.laserart)
+	gfx.unlockFocus()
+	self.background:setImage(self.backgroundImage)
 	
-	
-	local laserart = geo.polygon.new(laser.x1,laser.y1,laser.x2, laser.y2, laser.x3, laser.y3, laser.x4, laser.y4)
-	laserart:close()
-	
-	gfx.fillPolygon(laserart)
-	
-	
-	if laserart:containsPoint(triangle.x, triangle.y) then
+	if self.laserart:containsPoint(triangle.x, triangle.y) then
 		triangle:explode()
 	end
 	
@@ -261,7 +273,7 @@ function BossOne:laserMath()
 	target.y = self.targety
 	
 	local laser = {}
-	local laserdistance = 50
+	local laserdistance = 0 --TO_FIX: boss now needs small white outline to preven laser overlap.
 	local laserwidth = 10 --actually half of the width of the laser, fix to 20, 10 for alex
 	
 	local distance = math.sqrt((target.x-self.x)^2 + (target.y-self.y)^2)
