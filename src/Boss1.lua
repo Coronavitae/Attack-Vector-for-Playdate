@@ -71,7 +71,7 @@ gfx.pushContext(boss_one_image)
 	--gfx.drawRect(0, 0, 25, 25)
 gfx.popContext()
 
-playdate.simulator.writeToFile(boss_one_image, "~/Playdate_export/boss_one.png")
+
 
 boss_shield_reset = gfx.image.new(100,100)
 
@@ -103,8 +103,8 @@ function BossOne:init()
 	self.background = gfx.sprite.new(backgroundImage)
 	self.background:moveTo(200,120)
 	self.background:add()
-	self.background:setZIndex(self:getZIndex()-1)
-	print("laser zindex ="..tostring(self:getZIndex()-1))
+	self.background:setZIndex(4)--self:getZIndex()-1) TO_FIX: This commented-out code doesn't work 
+
 	self.speed = 5
 	self.health = 100
 	self.killscore = 500
@@ -115,6 +115,7 @@ function BossOne:init()
 	self.giftdir = 0
 	
 	self.laser_table = laser_table
+	self.pseudomask = gfx.image.new(400, 240)
 	
 	
 	BossOne.super.init(self)
@@ -221,6 +222,7 @@ function BossOne:init()
 		end
 		
 		BossOne.super.death(self)
+		self.background:remove()
 		self.lasersound:stop()
 		boss_alive = false
 		playdate.resetElapsedTime()--TO_FIX: this should only happen when the boss stage is cleared, if there are multiple boss-enemies
@@ -243,10 +245,37 @@ function BossOne:bossGraphics()
 		
 		self.laserart = geo.polygon.new(laser.x1,laser.y1,laser.x2, laser.y2, laser.x3, laser.y3, laser.x4, laser.y4)
 		self.laserart:close()
-		self.background:add()
 		
-	elseif self.bosstimer <40 then
+		gfx.lockFocus(self.pseudomask)
+			gfx.clear(gfx.kColorBlack)
+			gfx.setColor(gfx.kColorWhite)
+			gfx.fillPolygon(self.laserart)
+		gfx.unlockFocus()
+		
+		--self.laser_center_line = {} --TO_FIX: should be an actual line I think.
+		--self.laser_center_line.x1 = (laser.x1+laser.x2)/2
+		--self.laser_center_line.y1 = (laser.y1+laser.y2)/2
+		--self.laser_center_line.x2 = (laser.x3+laser.x4)/2
+		--self.laser_center_line.y2 = (laser.y3+laser.y4)/2
+		
+		--self.laser_upper_line = {}
+		--self.laser_upper_line.x1 = laser.x1
+		--self.laser_upper_line.y1 = laser.y1
+		--self.laser_upper_line.x2 = laser.x4
+		--self.laser_upper_line.y2 = laser.y4
+		
+		--self.laser_lower_line = {}
+		--self.laser_lower_line.x1 = laser.x2
+		--self.laser_lower_line.y1 = laser.y2
+		--self.laser_lower_line.x2 = laser.x3
+		--self.laser_lower_line.y2 = laser.y3
+
+		
+		self.background:add()
+	elseif self.bosstimer == 40 then
 		self:fireLaser()
+	elseif self.bosstimer <40 then
+		self:checkLaserKill()
 	elseif self.bosstimer <70 then
 		self:laserShimmerDisplay()
 	end
@@ -255,25 +284,22 @@ end
 
 
 function BossOne:laserShimmerDisplay(lasernumber) --lasernumber represents 1 of 5 layers of shimmer that update independently
-	local laser = self:laserMath()
-	local laser_polygon = geo.polygon.new(laser.x1,laser.y1,laser.x2, laser.y2, laser.x3, laser.y3, laser.x4, laser.y4)
-	laser_polygon:close() --TO_FIX: This entire part of the animation needs to be updated.
-	local pseudomask = gfx.image.new(400, 240, gfx.kColorBlack)
-	gfx.lockFocus(pseudomask)
-		gfx.setColor(gfx.kColorWhite)
-		gfx.fillPolygon(laser_polygon)
-	gfx.unlockFocus()
+	--local laser = self:laserMath()
+	--local laser_polygon = geo.polygon.new(laser.x1,laser.y1,laser.x2, laser.y2, laser.x3, laser.y3, laser.x4, laser.y4)
+	--laser_polygon:close() --TO_FIX: This entire part of the animation needs to be updated.
+	
+	
 	
 	
 	gfx.pushContext()
 		gfx.setImageDrawMode(gfx.kDrawModeWhiteTransparent)
-		local shimmer = self.laser_table[self.laserTimer]:copy()
-		laser_mask = gfx.image.new(400, 240, gfx.kColorWhite)
-		gfx.lockFocus(laser_mask)
+		local shimmer = self.laser_table[self.laserTimer]
+		--laser_mask = gfx.image.new(400, 240, gfx.kColorWhite)
+		--gfx.lockFocus(laser_mask)
 			
-			pseudomask:draw(0,0)
-		gfx.unlockFocus()
-		shimmer:setMaskImage(laser_mask)
+		--	pseudomask:draw(0,0)
+		--gfx.unlockFocus()
+		shimmer:setMaskImage(self.pseudomask)--laser_mask)
 		shimmer:draw(0,0)
 	gfx.popContext()
 	self.laserTimer +=1 
@@ -285,16 +311,29 @@ function BossOne:fireLaser()
 
 	gfx.lockFocus(self.backgroundImage)
 		gfx.fillPolygon(self.laserart)
+		
+		gfx.setLineWidth(1)
+		gfx.setColor(gfx.kColorWhite)
+		
+		--TO_FIX: Why does adding edge-lines cause worse tearing?
+		--gfx.drawLine(self.laser_lower_line.x1, self.laser_lower_line.y1, self.laser_lower_line.x2, self.laser_lower_line.y2)
+		--gfx.drawLine(self.laser_upper_line.x1, self.laser_upper_line.y1, self.laser_upper_line.x2, self.laser_upper_line.y2)
+		
+		gfx.setLineWidth(6)
+		--gfx.drawLine(self.laser_center_line.x1, self.laser_center_line.y1, self.laser_center_line.x2, self.laser_center_line.y2)
+		
 	gfx.unlockFocus()
-	self.background:setImage(self.backgroundImage)
 	
+	self.background:setImage(self.backgroundImage)
+end
+
+function BossOne:checkLaserKill()
 	if self.laserart:containsPoint(triangle.x, triangle.y) then
 		if player_alive == true then
 			triangle:explode()
 		end
 	end
-	
-	
+		
 end
 
 function BossOne:laserMath()

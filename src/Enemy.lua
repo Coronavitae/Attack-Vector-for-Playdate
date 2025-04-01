@@ -96,8 +96,6 @@ function Enemy:init()
 		self.x = self.x + xspeed
 		self.y = self.y + yspeed
 		self:moveTo(self.x,self.y)
-		
-		gfx.drawText("test", 50, 50)
 	
 	end
 	
