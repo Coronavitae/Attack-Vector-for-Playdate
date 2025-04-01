@@ -56,13 +56,22 @@ gfx.pushContext(boss_one_image)
 	gfx.fillCircleAtPoint(0, 100, 50)
 	gfx.fillCircleAtPoint(100, 0, 50)
 	gfx.fillCircleAtPoint(100, 100, 50)
+	
+	gfx.setColor(gfx.kColorWhite)
+	gfx.drawCircleAtPoint(0, 0, 50)
+	gfx.drawCircleAtPoint(0, 100, 50)
+	gfx.drawCircleAtPoint(100, 0, 50)
+	gfx.drawCircleAtPoint(100, 100, 50)
+	
 	gfx.setColor(gfx.kColorBlack)
 	boss_one_image_part_two:drawRotated(50, 50, 45)
+	gfx.fillCircleAtPoint(50,50,5)
 	--gfx.fillRect(0, 0, 25, 25)
 	--gfx.setColor(gfx.kColorWhite)
 	--gfx.drawRect(0, 0, 25, 25)
 gfx.popContext()
 
+playdate.simulator.writeToFile(boss_one_image, "~/Playdate_export/boss_one.png")
 
 boss_shield_reset = gfx.image.new(100,100)
 
@@ -95,6 +104,7 @@ function BossOne:init()
 	self.background:moveTo(200,120)
 	self.background:add()
 	self.background:setZIndex(self:getZIndex()-1)
+	print("laser zindex ="..tostring(self:getZIndex()-1))
 	self.speed = 5
 	self.health = 100
 	self.killscore = 500
@@ -109,7 +119,7 @@ function BossOne:init()
 	
 	BossOne.super.init(self)
 	
-	self:setZIndex(5)--TO_FIX: probably unnecessarily high; consider revising.
+	self:setZIndex(10)--TO_FIX: probably unnecessarily high; consider revising.
 	
 	function self:update()
 		--print(self.x..","..self.y)
