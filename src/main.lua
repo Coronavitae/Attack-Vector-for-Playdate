@@ -5,6 +5,7 @@ import 'CoreLibs/sprites'
 import 'CoreLibs/timer'
 import 'CoreLibs/ui'
 
+import 'Explosion'
 import 'Bullet'
 import 'Triangle'
 import 'Enemy'
@@ -354,6 +355,7 @@ function playdate.AButtonDown()
 			NewGame()
 		elseif player_alive == false or stage ~= 2 then --TO_FIX: dying should be its own stage, not just player_alive==false
 			stage = 2
+			playdate.display.setRefreshRate(30)
 			NewGame()
 		end--fix this, shouldn't be in update
 		

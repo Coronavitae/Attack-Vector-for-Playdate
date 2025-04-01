@@ -1,4 +1,4 @@
-
+--TO_FIX: rename this "Player"
 import 'CoreLibs/animator'
 import 'CoreLibs/graphics'
 import 'CoreLibs/sprites'
@@ -188,7 +188,7 @@ function NewTriangle()
 	end
 	
 	function triangle:explode()
-		
+		Explosion(self.x,self.y)
 		player_alive = false
 		laser:stop()
 		

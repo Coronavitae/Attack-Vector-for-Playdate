@@ -112,7 +112,7 @@ function BossOne:init()
 	self:setZIndex(5)--TO_FIX: probably unnecessarily high; consider revising.
 	
 	function self:update()
-		
+		--print(self.x..","..self.y)
 		--print("Boss health = "..self.health)
 		
 		self.lasersoundfilter:setCenter(self.lasersoundtimer.value)
@@ -191,10 +191,30 @@ function BossOne:init()
 		
 	
 	function self:death()
+		local shift = 10
+		local delay = 3
+		local exp_table = {
+			{-shift, -shift},{shift, shift, delay, true},{0,0, 2*delay},{-shift,shift, 3*delay, true},{0, -shift, 4*delay},{0, shift, 5*delay, true},{shift, -shift, 6*delay},{-shift, 0, 7*delay, true},{shift, 0, 8*delay}
+		} --basically randomly pops every location in a 3x3 grid around the boss-corpse, see below
+		for i=1, #exp_table do
+			Explosion(self.x+exp_table[i][1], self.y+exp_table[i][2], exp_table[i][3], exp_table[i][4])
+		end
+		
+		shift = -2*shift
+		
+		exp_table = {
+			{-shift, -shift},{shift, shift, delay, true},{0,0, 2*delay},{-shift,shift, 3*delay, true},{0, -shift, 4*delay},{0, shift, 5*delay, true},{shift, -shift, 6*delay},{-shift, 0, 7*delay, true},{shift, 0, 8*delay}
+		} --basically randomly pops every location in a 3x3 grid around the boss-corpse, see below
+		
+		for i=1, #exp_table do
+			Explosion(self.x+exp_table[i][1], self.y+exp_table[i][2], exp_table[i][3], true)
+		end
+		
 		BossOne.super.death(self)
 		self.lasersound:stop()
 		boss_alive = false
 		playdate.resetElapsedTime()--TO_FIX: this should only happen when the boss stage is cleared, if there are multiple boss-enemies
+		
 		self:remove()
 	end
 	
@@ -259,7 +279,9 @@ function BossOne:fireLaser()
 	self.background:setImage(self.backgroundImage)
 	
 	if self.laserart:containsPoint(triangle.x, triangle.y) then
-		triangle:explode()
+		if player_alive == true then
+			triangle:explode()
+		end
 	end
 	
 	
